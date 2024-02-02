@@ -5,39 +5,21 @@ namespace CnabReader.Models.Classes;
 
 public abstract class Cnab
 {
-    public static void ValidateMapping<T>()
+    public void ValidateMapping()
     {
-        var cnabInfo = typeof(T).GetCustomAttribute<CnabInfo>();
-        var currentCnabSize = 0;
+        var cnabRows = GetType().GetNestedTypes().Where(nested => nested.IsAssignableTo(typeof(CnabRow)));
+        var cnabInfo = GetType().GetCustomAttribute<CnabInfo>();
 
-        if (cnabInfo == null)
+        if (cnabInfo is null)
         {
-            throw new ArgumentException($"A classe {typeof(T).Name} não possui o atributo '{nameof(CnabInfo)}'");
+            throw new Exception($"'{GetType().Name}' não possui um atributo {nameof(CnabInfo)}");
         }
 
-        foreach (var cnabRow in typeof(T).GetNestedTypes())
+        foreach (var cnabRow in cnabRows)
         {
-            if (cnabRow.GetCustomAttribute<CnabRow>() == null)
-            {
-                throw new ArgumentException($"A classe {cnabRow.Name} não possui o atributo '{nameof(CnabRow)}'");
-            }
+            var cnabRowInstance = Activator.CreateInstance(cnabRow) as CnabRow;
 
-            foreach (var propertyInfo in cnabRow.GetProperties())
-            {
-                var cnabField = propertyInfo.GetCustomAttribute<CnabField>();
-
-                if (cnabField == null)
-                {
-                    throw new ArgumentException($"A propriedade {propertyInfo.Name} não possui o atributo '{nameof(CnabField)}'");
-                }
-
-                currentCnabSize += cnabField.DataLength;
-            }
-
-            if (currentCnabSize != (int)cnabInfo.Size)
-            {
-                throw new ArgumentException($"A classe {cnabRow.Name} não respeita o tamanho do cnab: {typeof(T).Name} ({cnabInfo.Size})");
-            }
+            cnabRowInstance?.ValidateMapping(cnabInfo);
         }
     }
 }

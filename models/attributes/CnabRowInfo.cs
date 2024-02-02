@@ -1,13 +1,11 @@
-using CnabReader.Models.Cnabs.Sizes;
-
 namespace CnabReader.Models.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class CnabRow : Attribute
+public class CnabRowInfo : Attribute
 {
     public int RowNumber { get; set; }
 
-    public CnabRow(int rowNumber)
+    public CnabRowInfo(int rowNumber)
     {
         RowNumber = rowNumber;
     }
