@@ -9,12 +9,20 @@ public abstract class CnabRow
     {
         var cnabFields = GetType().GetProperties().Where(property => property.GetCustomAttribute<CnabField>() != null);
         var currentCnabSize = 0;
+        var currentPos = 0;
 
         foreach (var field in cnabFields)
         {
             var cnabField = field.GetCustomAttribute<CnabField>();
-            
+
             currentCnabSize += cnabField!.DataLength;
+
+            if (cnabField.StartPosition != currentPos)
+            {
+                throw new Exception($"'{GetType().Name}' tem campos em que suas posições se sobrescrevem. ('{field.Name}')");
+            }
+
+            currentPos += cnabField.DataLength;
         }
 
         if (currentCnabSize != (int)cnabInfo.Size)
